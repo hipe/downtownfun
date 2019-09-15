@@ -11,10 +11,10 @@ this is scratching a surface. this article is stub. i can help expand it.
     birth); but it can also refer to several specific ideas that can be at
     odds with each other; the subject of the next two bullets.
 
-  - NOTE :[#443.B] refers to the pipeline workflow we use at document birth,
+  - NOTE :[#423.B] refers to the pipeline workflow we use at document birth,
     which is what is depicted in our sibling digraph document.
 
-  - in contrast, we will use :[#463.C] to be a hazy placeholder for this
+  - in contrast, we will use :[#423.C] to be a hazy placeholder for this
     future vaporware idea of configurable, functional pipelines.
 
   - often the distinction isn't important except for complicated
@@ -110,7 +110,7 @@ so:
                 +--------------------+              +--------------------+
 
 
-ideally, with [#463.C] custom functional pipelines, we could accomplish
+ideally, with [#423.C] custom functional pipelines, we could accomplish
 the above with a series of maps only; with no need for special implementation
 of a deny list.
 

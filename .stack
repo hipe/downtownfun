@@ -26,3 +26,29 @@ the script that was once called "stream" done or absorbed
 destroy existng sync architecture to be some new way
 pass-thru translation integrated into CLI for create collection (CSV to MD)
 let's see if we can have no "schema row" at all. rather the sync-able script should have a --for-sync
+_is_sync_meta_data
+away: custom_mapper_for_syncing
+away: custom_far_keyer_for_syncing
+away: custom_pass_filter_for_syncing
+away: far_deny_list
+away: field_names
+away: natural_key_field_name
+away: tag_lyfe_field_names
+away: traversal_will_be_alphabetized_by_human_key
+away: common_CLI_for_json_stream_
+away: far_key_simplifier
+away: near_key_simplifier
+away: _is_sync_meta_data
+functions marked with AWAY
+EDIT in diff
+todo in diff
+data_pipes/format_adapters/json_script.py:149
+data_pipes_test/test_1317_json_format_adapter/test_1317_intro.py
+away this test case Case1510DP
+eradicate all of this [#458.I.3.2]
+eventually get rid of common_CLI_for_json_stream_
+common_CLI_for_json_stream_
+dead file tag_lyfe_test/fixture_executables/exe_100_minimal_OK.py
+data_pipes_test/test_2662_integrate_with_markdown_table/test_2662_new_lines_via_sync.py in this  file there's lots of redundancy with far collection
+file or module, away normal_far_stream_via_collection_reference 
+elminiation all mention of far collection - it is producer script nowj

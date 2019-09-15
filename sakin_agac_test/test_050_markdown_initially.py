@@ -8,6 +8,9 @@ import unittest
 # Case001SA is used to reference this whole file
 
 
+raise Exception('has ISMD')  # #todo
+
+
 class _CommonCase(unittest.TestCase):  # #[#410.K]
 
     # -- assertions & assistance
@@ -162,6 +165,7 @@ class Case040SA_too_many_args(_CommonCase):
 class Case050SA_one_arg_which_is_stdin(_CommonCase):
 
     def test_100_succeeds(self):
+        raise Exception('you will get rid of the filter thing below')  # #todo
         self.succeeds()
 
     def test_200_header_row_and_second_one(self):
@@ -181,6 +185,7 @@ class Case050SA_one_arg_which_is_stdin(_CommonCase):
         return self.build_end_state()
 
     def stdin(self):
+        raise Exception('wat')  # #todo
         import json
         _first_line = json.dumps({
             '_is_sync_meta_data': True,

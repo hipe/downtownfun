@@ -8,7 +8,7 @@ date: "2018-04-24T16:01:17-04:00"
 
 this document serves dual purposes, one more general and one more specific:
 
-generally, we decompose our [#447] high-level synchronization algorithm
+generally, we decompose our [#407] high-level synchronization algorithm
 into code-level modules ("magnetics", usually) that we write one by one.
 
 more specifically, begin to tilt the work towards our target use case:

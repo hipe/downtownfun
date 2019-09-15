@@ -105,7 +105,7 @@ def _my_CLI(parsed_arg, program_name, sout, serr):
     from data_pipes import common_producer_script as mod
     sync = mod.TEMPORARY_LEGACY_USE_OF_SYNC_LIB()
 
-    _rc = sync.OpenNewLines_via_Sync_(
+    _rc = sync.open_new_lines_via_sync_(
             far_collection=_far_collection,
             near_collection=_near_collection,
             far_format=None,
@@ -128,7 +128,7 @@ def _CLI(sin, sout, serr, argv):  # #testpoint
             common_upstream_argument_parser_via_everything)
 
     _exitstatus = common_upstream_argument_parser_via_everything(
-            cli_function=_my_CLI,
+            CLI_function=_my_CLI,
             std_tuple=(sin, sout, serr, argv),
             argument_moniker='<script>',
             ).execute()

@@ -2,7 +2,7 @@
 "collection-level synchronization"
 
 at #history-A.2 when we spiked the new "interleaving" algorithm, we
-preserved this one (for practical reasons) .. see [#447]
+preserved this one (for practical reasons) .. see [#407]
 """
 
 from data_pipes_test.sync_support import SyncCase_

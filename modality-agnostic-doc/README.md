@@ -24,6 +24,8 @@ only in modeling interfaces for this purpose.
 |---------------------------|:-----:|-
 |[#511.4]                   |       | the previous but plus styler
 |[#511.3]                   |       | provision: expression with yield
+|[#510.10]                  |       | track "module via path"
+|[#510.9]                   |       | track mutexers (1 at writing)
 |[#510.8]                   |       | track copy-pasted implementations of lazy
 |[#510.7]                   |       | namespace for specfic instances
 |[#510.6]                   |       | track custom memoizy decorators

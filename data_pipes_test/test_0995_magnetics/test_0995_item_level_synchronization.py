@@ -8,7 +8,7 @@ synchronization can be used at the sub-item level. that is, if collections
 are an ordered list of items (each one of which has a natural key), can
 we see an item as a collection (that is, an ordered list) of name-value
 pairs, where each name-value pair acts as "the item", and the name is
-itself the natural key? (more at [#447].)
+itself the natural key? (more at [#407].)
 
 sometime before #history-A.2 we established that yes, our synchronization
 facility can be applied usefully to this use case. the cost:

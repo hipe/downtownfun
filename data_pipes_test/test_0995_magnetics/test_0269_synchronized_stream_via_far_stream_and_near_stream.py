@@ -1,7 +1,7 @@
 """
 the birth of this test file coincided with the introduction of the new
 test synchronization algorithm (interleaving) which became the default.
-(all in [#447]).
+(all in [#407]).
 
 some of the numbers of test cases line up with test cases in a sibling.
 """

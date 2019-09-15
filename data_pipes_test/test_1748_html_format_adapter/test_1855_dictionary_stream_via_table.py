@@ -52,12 +52,11 @@ class Case1855DP_hello(_CommonCase):
         self._shared_state()
 
     def test_300_new_in_this_thing_field_names_in_schema_record(self):
-        # coverpoint [#708.2.2]
-        _act = self._shared_state().head_dictionary['field_names']
-        _exp = ('name', 'grammar', 'module', 'python', 'comment')
+        _act = self._shared_state().seen_attribute_keys
+        _exp = ('comment', 'grammar', 'module', 'name', 'python')
         self.assertSequenceEqual(_act, _exp)
 
-    def test_400_url_with_tail_only_is_qualified(self):  # coverpt [#708.2.3]
+    def test_400_url_with_tail_only_is_qualified(self):
         row = self._business_row(1)
         self.assertIn('wiki.python', row['name'])
 
@@ -65,7 +64,7 @@ class Case1855DP_hello(_CommonCase):
         row = self._business_row(0)
         self.assertNotIn('wiki.python', row['name'])
 
-    def test_420_dicts_are_sparse(self):  # coverpoint [#708.2.4]
+    def test_420_dicts_are_sparse(self):
         row1 = self._business_row(0)
         row2 = self._business_row(1)
 
@@ -88,28 +87,35 @@ class Case1855DP_hello(_CommonCase):
     @shared_subject
     def _shared_state(self):
 
+        seen_attribute_keys = {}
+        entity_dcts = []
         emissions = []
 
         import modality_agnostic.test_support.listener_via_expectations as lib
 
-        # use_listener = lib.for_DEBUGGING (works)
-        use_listener = lib.listener_via_emission_receiver(emissions.append)
+        # listener = lib.for_DEBUGGING (works)
+        listener = lib.listener_via_emission_receiver(emissions.append)
 
-        _ = _subject_module().open_dictionary_stream(
-                html_document_path=html_fixture('0130-tag-subtree.html'),
-                listener=use_listener)
+        _ = _subject_module().open_traversal_stream(
+                listener=listener,
+                html_document_path=html_fixture('0130-tag-subtree.html'))
 
         with _ as dcts:
-            head_dct = next(dcts)
-            objs = [dct for dct in dcts]
+            for dct in dcts:
+                for k in dct.keys():
+                    seen_attribute_keys[k] = None
+                entity_dcts.append(dct)
 
-        class _State:
-            def __init__(self, _1, _2, _3):
-                self.head_dictionary = _1
-                self.business_objects = _2
-                self.emissions = _3
+        # (we can't assine lvars to lvalues of the same name in a class)
+        seen_attribute_keys_ = tuple(sorted(seen_attribute_keys.keys()))
+        emissions_ = tuple(emissions)  # can't re-assign to same name inside
 
-        return _State(head_dct, tuple(objs), tuple(emissions))
+        class State:  # #class-as-namespace
+            seen_attribute_keys = seen_attribute_keys_
+            business_objects = tuple(entity_dcts)
+            emissions = emissions_
+
+        return State
 
 
 def _subject_module():

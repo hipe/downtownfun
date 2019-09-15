@@ -3,8 +3,7 @@ from data_pipes_test.common_initial_state import (
         markdown_fixture,
         executable_fixture)
 from modality_agnostic.memoization import (
-        dangerous_memoize as shared_subject,
-        lazy)
+        dangerous_memoize as shared_subject)
 import unittest
 
 
@@ -192,16 +191,20 @@ class Case2664DP_duplicate_key(_CommonCase):
         yield ('error', 'expression', 'duplicate_key', 'as', 'erx')
 
     def given(self):
-
-        _these = (
-            {'_is_sync_meta_data': True, 'natural_key_field_name': 'col_a'},
+        _dictionaries = (
             {'col_a': 'qux'},
             {'col_a': 'xx'},
             {'col_a': 'qux'},
         )
+        _far_coll = {
+                'stream_for_sync_is_alphabetized_by_key_for_sync': False,
+                'stream_for_sync_via_stream': sync_stream_using_column_A,
+                'dictionaries': _dictionaries,
+                'near_keyerer': near_keyerer_minimal,
+                }
         return {
             'near_collection': markdown_fixture('0110-endcap-yes-no.md'),
-            'far_collection': _these,
+            'far_collection': _far_coll,
         }
 
 
@@ -216,7 +219,7 @@ class Case2665DP_preserve_endcappiness_here(_CommonCase):
 
     NOTE the original has stochastic whitespace. the updated cel loses
     this whitespace. we presume it is that the new is using the whitespacing
-    of the [#458.D] example row. but at this point, we don't know nore care.
+    of the [#458.D] example row. but at this point, we neither know or care.
     that is a bridge to cross when we get to it.
     """
 
@@ -234,14 +237,18 @@ class Case2665DP_preserve_endcappiness_here(_CommonCase):
         return self._build_end_state()
 
     def given(self):
-
-        _far = (
-                _same_this(),
+        _dictionaries = (
                 {'col_a': 'thing B', 'col_b': 'thing two'},
                 )
+        _far_coll = {
+                'stream_for_sync_is_alphabetized_by_key_for_sync': False,
+                'stream_for_sync_via_stream': sync_stream_using_column_A,
+                'dictionaries': _dictionaries,
+                'near_keyerer': near_keyerer_minimal,
+                }
         return {
             'near_collection': markdown_fixture('0110-endcap-yes-no.md'),
-            'far_collection': _far,
+            'far_collection': _far_coll,
         }
 
 
@@ -268,23 +275,30 @@ class Case2667DP_ADD_end_cappiness_here(_CommonCase):
         return self._build_end_state()
 
     def given(self):
-
-        _far = (
-                _same_this(),
+        _dictionaries = (
                 {'col_a': 'thing C', 'col_b': 'yerp'},
                 )
         return {
-            'near_collection': markdown_fixture('0110-endcap-yes-no.md'),
-            'far_collection': _far,
-        }
+                'stream_for_sync_is_alphabetized_by_key_for_sync': False,
+                'stream_for_sync_via_stream': sync_stream_using_column_A,
+                'dictionaries': _dictionaries,
+                'near_collection': markdown_fixture('0110-endcap-yes-no.md'),
+                'near_keyerer': near_keyerer_minimal,
+                }
 
 
 _same_row_1 = '|thing A|x|\n'
 
 
-@lazy
-def _same_this():
-    return {'_is_sync_meta_data': True, 'natural_key_field_name': 'col_a'}
+def sync_stream_using_column_A(dcts):
+    for dct in dcts:
+        yield (dct['col_a'], dct)
+
+
+def near_keyerer_minimal(key_via_native, schema, listener):
+    def near_keyer(native):
+        return native.cel_at_offset(0).content_string()
+    return near_keyer
 
 
 def _far_script_exists():
@@ -293,6 +307,10 @@ def _far_script_exists():
 
 def _same_existent_markdown_file():
     return markdown_fixture('0080-cel-underflow.md')
+
+
+def xx():
+    raise Exception('write me')
 
 
 if __name__ == '__main__':

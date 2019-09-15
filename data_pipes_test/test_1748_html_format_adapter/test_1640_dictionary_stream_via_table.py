@@ -48,10 +48,10 @@ import unittest
 class _CommonCase(unittest.TestCase):
 
     def _field_names(self):
-        return self._end_state().head_dictionary['field_names']
+        return self._end_state().sync_keys_seen
 
     def _record(self, k):
-        return self._end_state().business_object_dictionary[k]
+        return self._end_state().entity_dictionary_via_sync_key[k]
 
 
 class Case1640DP_hello(_CommonCase):

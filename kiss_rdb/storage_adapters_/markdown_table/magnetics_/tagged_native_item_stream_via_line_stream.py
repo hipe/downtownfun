@@ -1,4 +1,4 @@
-"""this is for exactly [#447.G].
+"""this is for exactly [#407.G].
 
 provisions (requirements):
 
@@ -54,7 +54,7 @@ def OPEN_TAGGED_DOC_LINE_ITEM_STREAM(upstream_path, listener):
 
     assert(listener)  # you're gonna want a listener  #[#412]
 
-    parse = _Parse(listener)
+    parse = MarkdownTableLineParser_(listener)
 
     def f():
         with __open_upstream_path(upstream_path) as lines:
@@ -89,10 +89,10 @@ def __open_upstream_path_challenge_mode(x):
         raise Exception(f'can we keep this simple? had {type(x)}')
 
 
-class _Parse:
+class MarkdownTableLineParser_:
     """stay light on your feet. this is not the right way
 
-    (after the fact, we documented this in [#447])
+    (after the fact, we documented this in [#407])
     """
 
     def __init__(self, listener):

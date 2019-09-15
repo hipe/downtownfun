@@ -1,7 +1,5 @@
 from kiss_rdb_test.common_initial_state import (
         publicly_shared_fixture_file)
-from data_pipes_test.common_initial_state import (
-        pop_property)
 from modality_agnostic.memoization import (
         dangerous_memoize as shared_subject,
         lazy)
@@ -158,24 +156,21 @@ class Case0150DP_in_this_case_mono_value_does_NOT_update(_CommonCase):
 
     @shared_subject
     def _sections_index(self):
-        _far = (
-                {
-                    '_is_sync_meta_data': True,
-                    'natural_key_field_name': 'col_a',
-                    },
+        _entity_dictionaries = (
                 {
                     'col_a': 'zub',
-                    },
-                )
 
+                },
+                )
         _near = (
                 '|Col A|Col B|\n',
                 '|-----|-----|\n',
                 '|  zib  |   x1   |\n',
                 '| zub | x2\n',
                 )
-
-        return _sections_index_via(_section_list_via(_far, _near))
+        return _sections_index_via(_section_list_via(
+                _entity_dictionaries, _near,
+                stream_for_sync_is_alphabetized_by_key_for_sync=True))
 
 
 class Case0160DP_custom_keyer_for_syncing(_CommonCase):
@@ -197,22 +192,16 @@ class Case0160DP_custom_keyer_for_syncing(_CommonCase):
 
     @shared_subject
     def _sections_index(self):
-
-        schema_row = {x: k for x, k in _same_schema_row.items()}
-        o = schema_row
-        o['custom_far_keyer_for_syncing'] = _same_far_keyer()
-        o['custom_near_keyer_for_syncing'] = _same_near_keyer()
-
-        _far = (
-                schema_row,
+        _entity_dictionaries = (
                 {
                     'field_name_one': '  FOUR  ',
                     'field_2': '5',
                 },
                 )
-
-        return _sections_index_via(
-                _section_list_via(_far, _same_markdown_file))
+        return _sections_index_via(_section_list_via(
+                _entity_dictionaries, _same_markdown_file,
+                custom_far_keyer_for_syncing=_same_far_keyer(),
+                near_keyerer=_same_near_keyerer()))
 
 
 class Case0170DP_in_this_case_mono_value_does_YES_update(_CommonCase):
@@ -240,16 +229,10 @@ class Case0170DP_in_this_case_mono_value_does_YES_update(_CommonCase):
 
     @shared_subject
     def _sections_index(self):
-        _far = (
-                {
-                    '_is_sync_meta_data': True,
-                    'natural_key_field_name': 'col_a',
-                    'custom_far_keyer_for_syncing': _same_far_keyer(),
-                    'custom_near_keyer_for_syncing': _same_near_keyer(),
-                    },
+        _entity_dictionaries = (
                 {
                     'col_a': 'ZUB',
-                    },
+                },
                 )
         _near = (
                 '|Col A|Col B|\n',
@@ -257,49 +240,44 @@ class Case0170DP_in_this_case_mono_value_does_YES_update(_CommonCase):
                 '| zib |   x1   |\n',
                 '| zub | x2\n',
                 )
-        return _sections_index_via(_section_list_via(_far, _near))
+        return _sections_index_via(_section_list_via(
+                _entity_dictionaries, _near,
+                custom_far_keyer_for_syncing=_same_far_keyer(),
+                near_keyerer=_same_near_keyerer()))
 
 
 def _case_010_section_list():
-        _dicts = (
-                _same_schema_row,
+    _entity_dictionaries = (
                 {
                     'field_name_one': 'adonga zebronga',
                     'chalupa fupa': 'zack braff',
                     'propecia alameda': 'ohai kauaii',
                 },
                 )
-        return _section_list_via(_dicts, _same_markdown_file)
+    return _section_list_via(_entity_dictionaries, _same_markdown_file)
 
 
 @lazy
 def _case_100_section_list():
-        _dicts = (
-                _same_schema_row,
+    _entity_dictionaries = (
                 {
                     'field_name_one': '3A',
                     'cha_cha': 'choo choo',
                 },
                 )
-        return _section_list_via(_dicts, _same_markdown_file)
+    return _section_list_via(_entity_dictionaries, _same_markdown_file)
 
 
 @lazy
 def _case_200_section_list():
-        _dicts = (
-                _same_schema_row,
+    _entity_dictionaries = (
                 {
                     'field_name_one': 'four',
                     'field_2': '5',
                 },
                 )
-        return _section_list_via(_dicts, _same_markdown_file)
+    return _section_list_via(_entity_dictionaries, _same_markdown_file)
 
-
-_same_schema_row = {
-        '_is_sync_meta_data': True,
-        'natural_key_field_name': 'field_name_one',
-        }
 
 _same_markdown_file = '0100-hello.md'
 
@@ -318,33 +296,54 @@ def _sections_index_via(section_list):
 
 def _section_list_via(far_dicts, mixed_near):
 
-    # #pattern [#458.Z.1] - nested context managers
+    assert(isinstance(far_dicts, tuple))  # #[#022]
 
-    import data_pipes_test.sync_support as sync_lib
+    assert(isinstance(mixed_near, str))  # #[#022] #todo spot12343423423
+    near_path = publicly_shared_fixture_file(mixed_near)
 
-    near_keyer, normal_far_dicts = sync_lib.NORMALIZE_NEAR_ETC_AND_FAR(far_dicts)  # noqa: E501
+    from modality_agnostic import listening
+    listener = listening.throwing_listener
 
-    def open_out(near_tagged_items):
-        _ = _subject_module()
-        return _.OPEN_NEWSTREAM_VIA(
-                normal_far_stream=iter(normal_far_dicts),
-                near_tagged_items=near_tagged_items,
-                near_keyerer=near_keyer,
-                far_deny_list=None,
-                listener=__file__)
+    # --
 
-    def open_near():
-        if isinstance(mixed_near, str):
-            use_near = publicly_shared_fixture_file(mixed_near)
-        else:
-            use_near = mixed_near
+    def stream_for_sync_via_stream():  # (not exactly this but like this)
+        for dct in far_dicts:
+            yield (dct['field_name_one'], dct)
 
-        return sync_lib.open_tagged_doc_line_items__(use_near)
+    normal_far_stream = stream_for_sync_via_stream()
 
-    import data_pipes.magnetics.result_via_tagged_stream_and_processor as _
-    with open_near() as near, open_out(near) as sess:
-        result = _(sess, _MyCustomProcessor())
-    return result
+    # --
+
+    from kiss_rdb.storage_adapters_.markdown_table.magnetics_.tagged_native_item_stream_via_line_stream import (  # noqa: E501
+        OPEN_TAGGED_DOC_LINE_ITEM_STREAM)
+
+    opened_near = OPEN_TAGGED_DOC_LINE_ITEM_STREAM(near_path, listener)
+
+    # --
+
+    near_keyerer = _same_near_keyerer()
+
+    # --
+
+    from kiss_rdb.storage_adapters_.markdown_table.magnetics_.synchronized_stream_via_far_stream_and_near_stream import (  # noqa: E501
+        OPEN_NEWSTREAM_VIA)
+
+    from data_pipes.magnetics.result_via_tagged_stream_and_processor import (
+            result_via_tagged_stream_and_processor as section_list_via)
+    # at writing this is the only place we call this ^
+
+    with opened_near as document_section_ASTs:
+        opened_new = OPEN_NEWSTREAM_VIA(
+                normal_far_stream=normal_far_stream,
+                near_tagged_items=document_section_ASTs,
+                near_keyerer=near_keyerer,
+                listener=listener)
+        # ..
+        with opened_new as AST_nodes:
+            _pcsr = _MyCustomProcessor()
+            _section_list = section_list_via(AST_nodes, _pcsr)
+
+    return _section_list
 
 
 class _MyCustomProcessor:
@@ -395,7 +394,9 @@ class _MyCustomProcessor:
         return self._close()
 
     def _close(self):
-        return pop_property(self, '_sections')
+        sections = self._sections
+        del self._sections
+        return tuple(sections)
 
     # --
 
@@ -407,8 +408,9 @@ class _MyCustomProcessor:
         self._current_section_items = []
 
     def _close_section(self, typ):
-        _x_a = tuple(pop_property(self, '_current_section_items'))
-        _section = _Section(typ, _x_a)
+        items = self._current_section_items
+        del self._current_section_items
+        _section = _Section(typ, items)
         self._sections.append(_section)
 
     def _same(self, x):
@@ -416,13 +418,7 @@ class _MyCustomProcessor:
 
 
 @lazy
-def _same_far_keyer():
-    return f'{_here()}.Chimmy_Chamosa_001_far'  # (in this file)
-    # return Chimmy_Chamosa_001_far
-
-
-@lazy
-def _same_near_keyer():
+def _same_near_keyerer():
     # return f'{_here()}.Chimmy_Chamosa_001_near'  # (in this file)
     return Chimmy_Chamosa_001_near
 
@@ -436,19 +432,6 @@ def _here():
     return '.'.join(_these)
 
 
-# == BEGIN [#410.W] explains our excitement and misgivings about these
-
-def Chimmy_Chamosa_001_far(traversal_params, listener):
-
-    nkfn = traversal_params.natural_key_field_name
-
-    def key_via_normal_dict(normal_dct):
-        k = normal_dct[nkfn]  # ..
-        return _simplify_and_add_guillemets(k)
-
-    return key_via_normal_dict
-
-
 def Chimmy_Chamosa_001_near(key_via_row_DOM_normally, complete_schema, listen):
     """at #history-A.3 this changed, symmetry broke"""
 
@@ -459,10 +442,12 @@ def Chimmy_Chamosa_001_near(key_via_row_DOM_normally, complete_schema, listen):
     return key_via_row_DOM
 
 
+def _same_far_keyer():
+    xx()
+
+
 def _simplify_and_add_guillemets(k):
     return f'«{k.strip().upper()}»'
-
-# ==
 
 
 class _Section:
@@ -476,6 +461,10 @@ def _subject_module():
     from kiss_rdb.storage_adapters_.markdown_table.magnetics_ import (
         synchronized_stream_via_far_stream_and_near_stream as mod)
     return mod
+
+
+def xx():
+    raise Exception('write me')  # #todo
 
 
 if __name__ == '__main__':

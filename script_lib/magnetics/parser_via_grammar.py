@@ -2,7 +2,7 @@
 .#born to help us universalize non-click CLI..
 
 This was early-abstracted from a rough sketch of an attempt at adding
-options to CHEAP_ARG_PARSE..
+options to cheap_arg_parse..
 """
 
 

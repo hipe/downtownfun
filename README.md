@@ -196,7 +196,6 @@ then in your 'main' terminal:
 |[#101]-[#199]              |       | (for game server)
 |[#022]                     | #trak | places where we wish we had strongly typed
 |[#021]                     | #wish | the desire for coverage testing (for particular reasons)
-|[#020.4]                   | #trak | track attempts at importing sibling modules
 |[#020.3]                   | #trak | track this one gripe about contextlib
 |[#020.2]                   | #hm   | track this one gripe about argparse
 |[#020]                     | #trak | track all issues with python itself

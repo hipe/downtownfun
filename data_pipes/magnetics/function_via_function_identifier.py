@@ -1,4 +1,5 @@
 """
+.#todo the first half can move or go
 .:[#410.W]: custom keyers for syncing (Case0160DP)
 
 in pure theory, the human keys of the near and far collections are "normal"

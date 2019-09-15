@@ -23,9 +23,7 @@ your result; but in fact we do something simpler.
 
 from data_pipes.magnetics import (
         synchronized_stream_via_far_stream_and_near_stream as _top_sync)
-from data_pipes import (
-        cover_me,
-        pop_property)
+from data_pipes import pop_property
 from modality_agnostic import streamlib
 import contextlib
 
@@ -89,17 +87,8 @@ class _Newstream_via:
             normal_far_stream,
             near_tagged_items,
             near_keyerer,
-            far_deny_list,  # may be temporary. see [#458.I.3.2]
             listener,
             ):
-
-        if far_deny_list is not None:
-            def f(pair):
-                dct = pair[1]
-                for key in far_deny_list:
-                    dct.pop(key)  # ..
-                return pair
-            normal_far_stream = (f(x) for x in normal_far_stream)
 
         # --
         self._normal_far_stream = normal_far_stream
@@ -317,19 +306,8 @@ class _Newstream_via:
         return f
 
 
-def _import_sibling_module(s):  # #experiment #track [#020.4]
-    """
-    you know how we can do `from . import foo_faa` to reach a module relative
-
-    to the module the code appears in? we want the same kind of thing, but
-    not have to be "inside" the module the code appears in.
-    """
-
-    from importlib import import_module
-    return import_module('..%s' % s, __name__)
-
-
-OPEN_NEWSTREAM_VIA.sibling_ = _import_sibling_module  # #testpoint
+def cover_me(s):
+    raise Exception(f'cover me: {s}')
 
 # #history-A.2: big refactor, go gung-ho with context managers. extracted.
 # #history-A.1: add experimental feature "sync keyerser"

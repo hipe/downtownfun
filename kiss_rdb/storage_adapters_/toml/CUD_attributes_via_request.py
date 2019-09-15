@@ -230,7 +230,7 @@ def __determine_insertion_groupings(qits, creates):
 
     you are solving for not only the insertion points but groupings.
 
-    we attempt something similar "interleaving" algorithm described in [#447].
+    we attempt something similar "interleaving" algorithm described in [#407].
     """
 
     # qits = qualified items

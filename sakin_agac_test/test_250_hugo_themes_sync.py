@@ -9,14 +9,18 @@ _CommonCase = unittest.TestCase
 # Case200SA is used to reference this whole file
 
 
+raise Exception('has ISMD')  # #todo
+
+
 class Case250_HI(_CommonCase):
 
     def test_010_HI(self):
+        raise Exception('change me')  # #todo
         these = []
 
         _report = _subject_module()
         _ = _themes_dir_A()
-        _cm = _report.open_dictionary_stream(_, None)
+        _cm = _report.open_diction_IN_FLUX(None, _)
 
         with _cm as dcts:
             for dct in dcts:
