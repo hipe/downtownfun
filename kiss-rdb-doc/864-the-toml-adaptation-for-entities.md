@@ -329,7 +329,7 @@ pass with no lookahead, a thing we'll call a "rewrite traversal".
 
 There is a necessary trade-off in realizing the vision of the one-pass
 rewrite traversal, and that is that the client (some client) *must* exhaust
-the whole stream then check `monitor.ok` before the produced lines can be
+the whole stream then check `monitor.OK` before the produced lines can be
 considered comittable; so that for example if there were any issues
 traversing the remainder of the file, we don't commit the rewrite.
 
@@ -349,7 +349,7 @@ rewritten, but also it can have an "auxiliary" result, which is:
   - for UPDATE, formally we want *both* the "before" *and* the "after",
     immutable entities (as snapshots)
 
-Although the client must check `monitor.ok`, we want to wabi-sabi reinforce
+Although the client must check `monitor.OK`, we want to wabi-sabi reinforce
 this provision *by only setting the auxiliary result (future?) once the
 stream is exhausted*. Under no circumstances should the client be able to
 access the auxiliary result before we have determined if there were any of

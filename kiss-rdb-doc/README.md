@@ -39,6 +39,10 @@ woah boy.
 |[#874.3]                   |       | the API (interface) for entity
 |[#874.2]                   |       | the API (interface) for collection
 |[#874]                     |       | largely an issue group for massive re-architecting - all on top of stack
+|[#873.H]                   | #wish | customizable functional pipelines (map, filter in any order etc)
+|[#873.6]                   | #trak | would redis etc
+|[#873.5]                   | #trak | #provsion: where sparseness is implemented - prune "empty" cels
+|[#873.D]                   | #trak | spots to change if we add this feature (see)
 |[#873.C]                   | #wish | a `--oneline` option for CLI
 |[#873.B]                   | #wish | this one smell in emissions
 |[#873.A]                   | #hole |

@@ -4,6 +4,7 @@ description: for a given particular natural key field name, for each item
 in the "near collection", see if you can pair it up with an item in the
 "far collection" based on that natural key field name.
 
+EDIT
 (the natural key field name is "declared" by the far collection.)
 
 for each given near item, when a corresponding far item exists by the above
@@ -68,7 +69,6 @@ def _pop_property(self, prop):
 
 class _CLI:  # #open [#607.4] de-customize this custom CLI
 
-
     def __init__(self, *_four):
         # (Case3061)
         self.stdin, self.stdout, self.stderr, self.ARGV = _four  # #[#608.6]
@@ -93,7 +93,7 @@ class _CLI:  # #open [#607.4] de-customize this custom CLI
         self.exitstatus = 0  # now that u made it this far innocent til guilty
 
         _d = self._pop_property('_normal_args')
-        _context_manager = OpenNewLines_via_Sync_(
+        _context_manager = open_new_lines_via_sync_(
                 **_d,
                 listener=self._listener,
                 )
@@ -122,8 +122,8 @@ class _CLI:  # #open [#607.4] de-customize this custom CLI
 
         self._do_diff = ns.diff
         self._normal_args = {
-                # (#open [#410.E] below)
                 'near_collection': near_collection,
+                # ^ #open [#459.M]: dashes to underscores is getting annoying
                 'far_collection': getattr(ns, 'far-collection'),
                 'near_format': ns.near_format,
                 'far_format': ns.far_format,
@@ -132,90 +132,63 @@ class _CLI:  # #open [#607.4] de-customize this custom CLI
     _pop_property = _pop_property
 
 
-class OpenNewLines_via_Sync_:  # #testpoint
-
-    def __init__(
-        self,
+def open_new_lines_via_sync_(  # #testpoint
+        producer_script_path,
         near_collection,
-        far_collection,
         listener,
-        near_format=None,
-        far_format=None,
-        custom_mapper_OLDSCHOOL=None,
-    ):
-        self.near_collection = near_collection
-        self.far_collection = far_collection
-        self.near_format = near_format
-        self.far_format = far_format
-        self._custom_mapper_OLDSCHOOL = custom_mapper_OLDSCHOOL
-        self._listener = listener
-        self.OK = True
+        near_format=None,  # gives a hint, if filesystem path extension ! enuf
+        cached_document_path=None,  # for tests
+        ):
 
-    def __enter__(self):
-        self.OK and self.__resolve_far_collection_reference()
-        self.OK and self.__resolve_near_collection_reference()
-        self.OK and self.__resolve_function()
-        if not self.OK:
-            return
-        lines = self.__do_new_doc_lines_via_sync()
-        if True:  # ..
-            for line in lines:
-                yield line
+    # resolve the function for syncing from the near collection reference
+    near_coll_ref = biz_lib.collection_reference_via_(
+            near_collection, listener, near_format)
+    if near_coll_ref is None:
+        return _empty_context_manager()
 
-    def __exit__(self, *_):
-        return False  # we do not trap exceptions
+    def ew():
+        yield ('CLI', 'modality functions')
+        yield ('new_document_lines_via_sync', 'CLI modality function')
 
-    def __do_new_doc_lines_via_sync(self):
+    new_lines_via = near_coll_ref.format_adapter.DIG_HOI_POLLOI(ew(), listener)
+    if new_lines_via is None:
+        return _empty_context_manager()
 
-        far_cr = self._pop_property('_far_collection_reference')
-        near_cr = self._pop_property('_near_collection_reference')
+    # resolve the producer script from the far collection reference (for now)
 
-        # the real filesystem gets injected at the top of the UI stack
-        from script_lib import filesystem_functions as fsf
+    if hasattr(producer_script_path, 'HELLO_I_AM_MOCK_PRODUCER_SCRIPT'):
+        ps = producer_script_path
+    else:
+        from kiss_rdb.cli.LEGACY_stream import module_via_path
+        ps = module_via_path(producer_script_path, listener)
 
-        _ = self._pop_property('__new_doc_lines_via_sync')
-        return _(
-                far_collection_reference=far_cr,
-                near_collection_reference=near_cr,
-                custom_mapper_OLDSCHOOL=self._custom_mapper_OLDSCHOOL,
-                filesystem_functions=fsf,
-                listener=self._listener,
-                )
+        if ps is None:
+            return _empty_context_manager()
 
-    def __resolve_function(self):
+    # money
 
-        def dig_f():
+    class ContextManager:
 
-            # the FA might not have defined any such functions for the modality
-            yield ('CLI', 'modality functions')
+        def __enter__(self):
+            self._exit_me = ps.open_traversal_stream(
+                    listener, cached_document_path)
+            _dictionaries = self._exit_me.__enter__()
+            return new_lines_via(
+                    stream_for_sync_is_alphabetized_by_key_for_sync=ps.stream_for_sync_is_alphabetized_by_key_for_sync,  # noqa: E501
+                    stream_for_sync_via_stream=ps.stream_for_sync_via_stream,
+                    dictionaries=_dictionaries,
+                    near_collection_reference=near_coll_ref,
+                    DO_ENTITY_SYNC_WHEN_FAR_DICTIONARY_IS_LENGTH_ONE=ps.DO_ENTITY_SYNC_WHEN_FAR_DICTIONARY_IS_LENGTH_ONE,  # noqa: E501
+                    near_keyerer=ps.near_keyerer,
+                    filesystem_functions=None,
+                    listener=listener)
 
-            # the FA might not have defined this particular function
-            yield ('new_document_lines_via_sync', 'CLI modality function')
+        def __exit__(self, *_3):
+            em = self._exit_me
+            del self._exit_me
+            return em.__exit__(*_3)
 
-        _ = self._near_collection_reference.format_adapter.DIG_HOI_POLLOI(
-                dig_f(), self._listener)
-
-        self._required('__new_doc_lines_via_sync', _)
-
-    def __resolve_near_collection_reference(self):
-        _ = _pop_property(self, 'near_collection')
-        __ = _pop_property(self, 'near_format')
-        _ = biz_lib.collection_reference_via_(_, self._listener, __)
-        self._required('_near_collection_reference', _)
-
-    def __resolve_far_collection_reference(self):
-        _ = _pop_property(self, 'far_collection')
-        __ = _pop_property(self, 'far_format')
-        _ = biz_lib.collection_reference_via_(_, self._listener, __)
-        self._required('_far_collection_reference', _)
-
-    def _required(self, attr, x):
-        if x is None:
-            self.OK = False
-        else:
-            setattr(self, attr, x)
-
-    _pop_property = _pop_property
+    return ContextManager()
 
 
 class _FancyDiffLineConsumer:
@@ -287,6 +260,14 @@ class _LineConsumer_via_STDOUT:
         self._sout.write(line)
 
     def __exit__(self, *_):
+        return False
+
+
+class _empty_context_manager:  # #todo
+    def __enter__(self):
+        return ()
+
+    def __exit__(self, *_3):
         return False
 
 

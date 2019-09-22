@@ -37,7 +37,7 @@ error reporting geared towards your .. intention.
 
 ## <a name=3></a>heuristic templating
 
-this relates to #open [#410.S]  (see, discussed there at length) which pertains to a
+this relates to #open [#873.G]  (see, discussed there at length) which pertains to a
 particular application of this theory that has yielded mis-behaviors.
 
 but the "theory" of heruistic templating is that we look at the existing
@@ -89,7 +89,7 @@ but this is seen as overwrought for now.
 
 
 
-## <a name=F></a> provision: the collision handler takes four arguments.
+## <a name=6></a> provision: the collision handler takes four arguments.
 
 (this is up from the previous two it used to take before #history-A.1)
 we made this change because we were gung-ho about etc but it seems it might
@@ -99,7 +99,37 @@ natural key?
 
 
 
-## <a name=G></a> provision: short circuit out of a merge operation
+## <a name=7></a> option: short circuit out of a merge operation
+
+This option provisions for the short-circuiting out of an entity-sync
+(a sync *within* one entity) when a certain hard-coded condition is met.
+
+Each far entity dictionary must have as its leftmost element the natural
+natural key for the entity (#provision [#458.I.2]). Therefor a dictionary
+with only one element consists of only the natural key.
+
+Custom near keyers are a sync parameter (#provision [#458.H]).
+
+
+
+If "do sync" (this option) is set to true, when the far entity dictionary
+has only one element (so, only the natural key)
+
+Where there is a would-be entity merge and the far entity (dictionary)
+consists of only the natural key, the entity merge is skipped (to preserve
+near formatting (#provision [#458.7]).
+
+For reasons that are not fully understood but are buried in the
+.#history-A.4 commit, it used to be that the existence of a custom keyer
+(which?) would override this short-circuiting of entity-level merges.
+At #history-A.4 this became an explicit boolean parameter, as opposed
+to before when it was activated as a side-effect of other options.
+
+
+This commit ensures that provision [#458.7] is (now) always held.
+"""
+
+
 
 this provision holds that we short-circuit out of calling the merge callback
 if the far "record" has no components other than the human key (because why
@@ -119,6 +149,7 @@ key per each item through arbitrary means. [#463.B] shows how a keyer can
 work in conjunction with a mapper, in our "pipeline workflow".
 
 One case that that covers this provision is (Case0160DP).
+EDIT
 
 
 
@@ -127,6 +158,7 @@ One case that that covers this provision is (Case0160DP).
 
 ..by default the "human key" field.. we don't want to be fully
 married to this but it's a cost-saving shortcut.
+EDIT
 
 
 
@@ -273,5 +305,6 @@ there's some better alternative, etc.
 
 ## (document-meta)
 
+  - #history-A.2: as referenced
   - #history-A.1: normal far stream became a thing
   - #born.

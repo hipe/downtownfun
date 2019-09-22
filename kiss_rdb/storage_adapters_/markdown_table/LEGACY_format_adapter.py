@@ -2,69 +2,58 @@
 
 from kiss_rdb import (
         LEGACY_format_adapter_via_definition as _format_adapter)
-from data_pipes import cover_me
 
 
-def _required(self, prop, x):  # ..
-    if x is None:
-        self._become_not_OK()
-    else:
-        setattr(self, prop, x)
+def _new_doc_lines_via_sync(**kwargs):
+    return __do_new_doc_lines_via_sync(**kwargs)
 
 
-def _new_doc_lines_via_sync(
-        far_collection_reference,
+def __do_new_doc_lines_via_sync(
+        stream_for_sync_is_alphabetized_by_key_for_sync,
+        stream_for_sync_via_stream,
+        dictionaries,
         near_collection_reference,
+        near_keyerer,
+        DO_ENTITY_SYNC_WHEN_FAR_DICTIONARY_IS_LENGTH_ONE,
         filesystem_functions,
-        listener,
-        custom_mapper_OLDSCHOOL=None,
+        listener
         ):
-    """here is where we bring it all together, the grand synthesis outlined
 
-    in [#458.K].
-    """
+    # #provision [#458.L.2] iterate empty on failure
 
-    from .magnetics_ import (
-            normal_far_stream_via_collection_reference as lib)
-    from data_pipes import my_contextlib
+    from .magnetics_.normal_far_stream_via_collection_reference import (
+            OPEN_NEAR_SESSION, FAR_STREAM_FOR_SYNC_VIA)
 
-    def open_out(far, near):
-        if not near.OK:
-            return my_contextlib.empty_iterator_context_manager()
-            # #provision [#458.L.2] iterate empty on failure
+    ns = OPEN_NEAR_SESSION(
+            keyerer=near_keyerer,
+            near_collection_path=near_collection_reference.collection_identifier_string,  # noqa: E501
+            listener=listener)
 
-        _normal_far_st = far.release_normal_far_stream()
+    if not ns:
+        raise Exception('where')  # #todo
+        return _empty_context_manager()  # (Case1314DP)
+
+    # something about version number: (Case1319DP)  # #todo
+
+    far = FAR_STREAM_FOR_SYNC_VIA(
+            stream_for_sync_is_alphabetized_by_key_for_sync,
+            stream_for_sync_via_stream,
+            dictionaries, listener)
+
+    def open_out(near):
         _tagged_line_items = near.release_tagged_doc_line_item_stream()
-        _far_deny_list = far.far_deny_list
-        from .magnetics_ import synchronized_stream_via_far_stream_and_near_stream as _  # noqa: E501
-        return _.OPEN_NEWSTREAM_VIA(
-                normal_far_stream=_normal_far_st,
+        from .magnetics_.synchronized_stream_via_far_stream_and_near_stream import (  # noqa: E501
+                OPEN_NEWSTREAM_VIA)
+        return OPEN_NEWSTREAM_VIA(
+                normal_far_stream=far,
                 near_tagged_items=_tagged_line_items,
                 near_keyerer=near.keyerer,
-                far_deny_list=_far_deny_list,
-                listener=listener)
-
-    def open_near(far):
-        if not far.OK:
-            return my_contextlib.not_OK_context_manager()  # (Case1314DP)
-
-        _nrtp = far.TO_NRTP__()
-        return lib.OPEN_NEAR_SESSION(
-                near_relevant_traversal_parameters=_nrtp,
-                near_collection_path=near_collection_reference.collection_identifier_string,  # noqa: E501
-                listener=listener)
-
-    def open_far():
-        return lib.OPEN_FAR_SESSION(
-                cached_document_path=None,  # for testing only
-                far_collection_reference=far_collection_reference,
-                custom_mapper_OLDSCHOOL=custom_mapper_OLDSCHOOL,
-                datastore_resources=filesystem_functions,
+                DO_ENTITY_SYNC_WHEN_FAR_DICTIONARY_IS_LENGTH_ONE=DO_ENTITY_SYNC_WHEN_FAR_DICTIONARY_IS_LENGTH_ONE,  # noqa: E501
                 listener=listener)
 
     line_via = _liner()
 
-    with open_far() as far, open_near(far) as near, open_out(far, near) as out:
+    with ns as near, open_out(near) as out:
         for k, v in out:
             line = line_via(k, v)
             if line is None:
@@ -73,9 +62,10 @@ def _new_doc_lines_via_sync(
 
 
 def _liner():
-    """keep track of state of whether you're in a part of the document where
+    """eep track of state of whether you're in a part of the document where
 
     the line-items are strings or not. that is all.
+    #todo: refactor to be shorter
     """
 
     o = ExpectedTagOrder_()
@@ -108,12 +98,8 @@ def _liner():
     return _Liner()
 
 
-def _open_fiter_request(trav_req):
+def _open_filter_request(trav_req):
     return _open_trav_request('filter', **trav_req.to_dictionary())
-
-
-def _open_sync_request(trav_req):
-    return _open_trav_request('sync', **trav_req.to_dictionary())
 
 
 def _open_trav_request(
@@ -167,7 +153,7 @@ class ExpectedTagOrder_:
     def pop_and_assert_matches_top(self, tag):
         self._stack.pop()
         if not self.matches_top(tag):
-            cover_me('unexpected symbol here: %s' % tag)
+            raise Exception(f'cover me: unexpected symbol here: {tag}')
 
     def matches_top(self, tag):
         return self._stack[-1][0] == tag
@@ -178,10 +164,14 @@ _functions = {
             'new_document_lines_via_sync': _new_doc_lines_via_sync,
             },
         'modality_agnostic': {
-            'open_filter_request': _open_fiter_request,
-            'open_sync_request': _open_sync_request,
+            'open_filter_stream': _open_filter_request,
             },
         }
+
+
+def _empty_context_manager():
+    from data_pipes import my_contextlib
+    return my_contextlib.empty_iterator_context_manager()
 
 
 # == in oldentimes, this file was __init__.py probably. then, #history-A.2

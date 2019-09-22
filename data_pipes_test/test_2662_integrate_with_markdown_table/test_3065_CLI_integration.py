@@ -10,7 +10,7 @@ import unittest
 class _CommonCase(unittest.TestCase):
     """NOTE - many of these are abstraction candidates
 
-    #track #[#410.K]
+    #track #[#459.F]
     """
 
     # -- assertions
@@ -308,7 +308,7 @@ class Case3070_money_and_diff(_CommonCase):
         return ('me', '--diff', _markdown_0100(), _far_130())
 
 
-# #open [#410.T] cover case: no diff
+# #open [#459.I] cover case: no diff
 
 
 def _far_130():

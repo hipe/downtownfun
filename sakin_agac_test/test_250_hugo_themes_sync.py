@@ -9,14 +9,18 @@ _CommonCase = unittest.TestCase
 # Case200SA is used to reference this whole file
 
 
+raise Exception('has ISMD')  # #todo
+
+
 class Case250_HI(_CommonCase):
 
     def test_010_HI(self):
+        raise Exception('change me')  # #todo
         these = []
 
         _report = _subject_module()
         _ = _themes_dir_A()
-        _cm = _report.open_dictionary_stream(_, None)
+        _cm = _report.open_diction_IN_FLUX(None, _)
 
         with _cm as dcts:
             for dct in dcts:
@@ -26,7 +30,7 @@ class Case250_HI(_CommonCase):
         tags_k = 'tags_generated'
         label_k = 'label'
 
-        # == BEGIN fix near [#410.Z] order is indeterminate
+        # == BEGIN fix near [#410.4] filesystem entry order is indeterminate
         order_me = these[1:]
         order_me.sort(key=lambda dct: dct[label_k])
         one, two = order_me

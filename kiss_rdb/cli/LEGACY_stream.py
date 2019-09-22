@@ -111,77 +111,47 @@ def _traversal_stream_for_sync(  # #testpoint
         collection_identifier,
         listener):
 
+    # rewritten at #history-A.4 just for bloody survival
+
     coll_ref = collection_reference_via_(collection_identifier, listener)
     if coll_ref is None:
         return
 
-    _fsf = _filesystem_functions()
-    from kiss_rdb.storage_adapters_.markdown_table.magnetics_ import (
-        normal_far_stream_via_collection_reference as _)
+    ps = coll_ref.TO_PRODUCER_SCRIPT(listener)
+    if ps is None:
+        return
 
-    far_sess_cm = _.OPEN_FAR_SESSION(
-        far_collection_reference=coll_ref,
-        cached_document_path=cached_document_path,
-        datastore_resources=_fsf,
-        listener=listener)
+    def fml(dcts):
+        return ps.stream_for_sync_via_stream(dcts)
 
-    with far_sess_cm as far_sess:
-        if not far_sess.OK:
-            return
-        far_st = far_sess.release_normal_far_stream()
-        for pair in far_st:
+    if isinstance(cached_document_path, tuple):
+        for pair in fml(cached_document_path):
             yield pair
+    else:
+        opened = ps.open_traversal_stream(listener, cached_document_path)
+        with opened as dcts:
+            for pair in fml(dcts):
+                yield pair
 
 
-class open_traversal_stream_TEMPORARY_LOCATION:
+def open_traversal_stream_TEMPORARY_LOCATION(
+        cached_document_path,
+        collection_identifier,
+        listener,
+        ):
     """ #[#020.3]. just glue.
 
     [#874.7] non-CLI should not load CLI to use this
     """
 
-    def __init__(
-            self,
-            intention,
-            cached_document_path,
-            collection_identifier,
-            listener,
-            ):
-        self._intention = intention
-        self._collection_identifier = collection_identifier
-        self._cached_document_path = cached_document_path
-        self._listener = listener
-        self.OK = True
+    coll_ref = collection_reference_via_(collection_identifier, listener)
+    if coll_ref is None:
+        return
 
-    def __enter__(self):
-
-        _ = _pop_property(self, '_collection_identifier')
-        coll_ref = collection_reference_via_(_, self._listener)
-        if coll_ref is None:
-            return
-
-        intention = _pop_property(self, '_intention')
-        if intention is None:
-            intention = 'sakin_agac_synchronization'  # noqa: E501 - universally implicit default
-
-        _meth_name = _method_name_via_intention(intention)
-
-        _meth = getattr(coll_ref, _meth_name)
-
-        trav_cm = _meth(
-                cached_document_path=self._cached_document_path,
-                datastore_resources=_filesystem_functions,
-                listener=self._listener)
-
-        if trav_cm is None:
-            return
-
-        with trav_cm as trav_response:
-            yield trav_response.release_traversal_parameters()
-            for dct in trav_response.release_dictionary_stream():
-                yield dct
-
-    def __exit__(self, *_3):
-        return False  # we did not consume the exception
+    return coll_ref.open_traversal_stream(
+            cached_document_path=cached_document_path,
+            datastore_resources=_filesystem_functions,
+            listener=listener)
 
 
 _desc = __doc__
@@ -308,12 +278,17 @@ def try_help_(s):
     return lineser
 
 
-def _method_name_via_intention(intention):
-    if 'sakin_agac_synchronization' == intention:
-        return 'open_sync_request'
-    else:
-        assert('tag_lyfe_filter' == intention)
-        return 'open_filter_request'
+def module_via_path(path, listener):  # #[#510.10] module via path. #testpoint
+    # introduced at #history-A.3 just as bridge code. not sure if this
+    # file is the best location for this. it may be too high-level, it may
+    # be too tightly bound to legacy stufff #todo
+
+    far_coll_ref = collection_reference_via_(
+            path, listener,
+            format_identifier='json_script')  # ..
+    if far_coll_ref is None:
+        return
+    return far_coll_ref.TO_PRODUCER_SCRIPT(listener)
 
 
 def collection_reference_via_(
@@ -329,8 +304,7 @@ def collection_reference_via_(
         return
     FA_NAME, format_adapter_module = pair
     _fa = format_adapter_module.FORMAT_ADAPTER
-    _ref = _fa.collection_reference_via_string(collection_identifier)
-    return _ref  # #todo
+    return _fa.collection_reference_via_string(collection_identifier)
 
 
 def _format_adapters_module():
@@ -363,6 +337,7 @@ if _is_entrypoint_file:
     _exitstatus = _CLI(o.stdin, o.stdout, o.stderr, o.argv).execute()
     exit(_exitstatus)
 
+# #history-A.3: no more sync-side stream-mapping
 # #history-A.2 can be temporary. as referenced.
 # #history-A.1: begin become library, will eventually support "map for sync"
 # #born.
