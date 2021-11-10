@@ -140,58 +140,103 @@ def _provision_identifier(away_soon, fh, listener):  # #testpoint
         listener('error', 'expression', 'out_of_space', lambda: (msg,))
 
     def traverse_whole_collection():
-        last_iden_tagged_as_hole = None
+        """Traverse every identifier in the collection in file-order
+        (new identifiers are added near the top of the file, so
+        identifier numbers get lower lower in the file), gathering
+        statistical maximums and other last-seens. After traversing the
+        whole collection in this manner, chose the (any) provisioned identifier
+        based on our heuristics
+        """
+
         last_iden_with_real_major_hole_above_it = None
         last_iden_with_real_minor_hole_above_it = None
-        above_iden, branch, ent = eg_iden, False, None
 
         from text_lib.magnetics.scanner_via import \
             scanner_via_iterator as func
         scn = func(ents)
 
         # If using a limiter range, advance past the ceiling limit
+        # without updating statistics
         # (ceiling is physically above floor in the file, and comes first,
         # because lower line numbers have higher identifier numbers)
 
         while scn.more and is_over_limiter_ceiling(scn.peek.identifier):
             scn.advance()
 
-        while scn.more:
-
+        # Stop until either you run out or you hit the floor
+        def next_iden():
+            if scn.empty:
+                return
             ent = scn.peek
             iden = ent.identifier
 
             # If using a limiter range, stop when you hit the floor limit
             if is_under_limiter_floor(iden):
-                break
+                return
 
+            # Keep track of each next identifier you see that is tagged as hole
             if tagged_as_hole(ent):
-                last_iden_tagged_as_hole = iden
-            was_under_branch = branch
-            jump_distance, branch = compare(above_iden, iden, branch)
+                memo.last_iden_tagged_as_hole = iden
 
-            if jump_distance < 0:
-                reason = f"{above_iden.to_string()} then {iden.to_string()}"
-                xx(reason)
+            scn.advance()
+            return iden
 
-            assert -1 < jump_distance
+        memo = next_iden  # #watch-the-world-burn
+        memo.last_iden_tagged_as_hole = None
 
-            if 0 == jump_distance:
-                # The header node at the bottom of a bunch of compound issues
-                assert was_under_branch and not branch
-            elif 1 == jump_distance:
-                pass  # normal tight lyfe
-            else:
-                assert 0 < jump_distance
-                # simple to simple (so was not): major hole
-                # compound to compound (so was): minor hole
-                # simple to compound (so was not): major hole
-                # compound to simple (so was): major hole
+        above_iden = next_iden()
 
-                ok = True
-                yes1 = not numerals_not_let
-                yes2 = iden.has_sub_component and 14 == iden.minor_integer
-                if yes1 and yes2:
+        # If collection is empty, it's not interesting
+        if above_iden is None:
+            return 'empty_collection', None
+
+        # If collection has only one item, just hack some stuff for now
+        iden = next_iden()
+        if iden is None:
+            last_iden_with_real_major_hole_above_it = above_iden
+            last_iden_with_real_minor_hole_above_it = above_iden
+            true = False
+        else:
+            true = True
+            letters_are_used = not numerals_not_let
+
+        # For a collection that has more than one item, look at each delta:
+        while true:
+            major_delta, minor_delta = compare(above_iden, iden)
+            if 0 == major_delta:
+                # .. then you're looking at two items under same base
+
+                if minor_delta is None:  # buck was passed #here5
+                    # Transition btwn idens of same major and different "type"
+                    above_has = above_iden.has_sub_component
+                    has = iden.has_sub_component
+                    if above_has:
+                        assert not has
+
+                        # A sub-item occurring above its "base" item is normal
+
+                        # If 1, 2 etc are available, use those 🤷
+                        if 1 < above_iden.major_integer:
+                            last_iden_with_real_minor_hole_above_it = iden
+                        else:
+                            pass  # normal transition from base to 1
+                    else:
+                        # Error case: A sub-item occurring below a base item
+                        assert has
+                        a, b = above_iden.to_string(), iden.to_string()
+                        xx(f"why have {a!r} then {b!r}")
+
+                elif 1 == minor_delta:
+                    # No gap between minors (commonmost). Keep looking
+                    pass
+                elif 0 == minor_delta:
+                    # Error case: the same identifier twice in a row
+                    a, b = above_iden.to_string(), iden.to_string()
+                    xx(f"same identifer twice in a row: {a!r} {a!r}")
+                else:
+                    assert 0 < minor_delta  # how? #here6
+                    # A gap (jump) greater than 1 mean there's a real hole
+
                     # YIKES if you're about to say that 14 (aka "N") has a
                     # minor hole above it AND you're doing letters not numerals
                     # then don't say it, because that would be 15 (aka "O")
@@ -199,33 +244,32 @@ def _provision_identifier(away_soon, fh, listener):  # #testpoint
                     # Take this check out and see that this "false hole"
                     # exists everywhere in our collections.
 
-                    def lines():
-                        yield "(won't use 'O' because it looks like '0')"
-                    listener('info', 'expression', 'skipping_O', lines)
-
-                    ok = False
-
-                if was_under_branch and branch:
-                    if ok:
+                    if letters_are_used and 14 == iden.minor_integer:
+                        def lines():
+                            yield "(skipping 'O' because it looks like '0')"
+                        listener('info', 'expression', 'skipping_O', lines)
+                    else:
                         last_iden_with_real_minor_hole_above_it = iden
-                elif branch:  # new at writing. experiment.
-                    # begining of the world to compound: minor hole
-                    if ok:
-                        last_iden_with_real_minor_hole_above_it = iden
-                else:
-                    last_iden_with_real_major_hole_above_it = iden
+            elif 1 == major_delta:
+                # This is a normal jump distance between majors. no gap
+                pass
+            else:
+                # The delta in major was more than one, i.e. a real hole
+                assert 1 < major_delta
+                last_iden_with_real_major_hole_above_it = iden
+
             above_iden = iden
-            scn.advance()
+            iden = next_iden()
+            if iden is None:
+                break
 
-        if (iden := last_iden_tagged_as_hole):
+        if (iden := memo.last_iden_tagged_as_hole):
             return 'last_iden_tagged_as_hole', iden
         if (iden := last_iden_with_real_major_hole_above_it):
             return 'last_iden_with_real_major_hole_above_it', iden
+        assert last_iden_with_real_major_hole_above_it
         if (iden := last_iden_with_real_minor_hole_above_it):
             return 'last_iden_with_real_minor_hole_above_it', iden
-        if ent:
-            return 'out_of_space', ent.identifier
-        return 'empty_collection', None
 
     def tagged_as_hole(ent):
         s = ent.core_attributes.get(main_tag_key)
@@ -235,23 +279,34 @@ def _provision_identifier(away_soon, fh, listener):  # #testpoint
 
     rx = _re.compile(r'(?:^| )#hole\b')
 
-    def compare(above_iden, iden, is_under_branch):
-        if is_under_branch:
+    def compare(above_iden, iden):
+        # We are comparing two identifiers, both of which are guaranteed to
+        # have a major (integer) component but neither of which are guaranteed
+        # to have a minor component (integer-isomorphic).
+
+        major_delta = major_dist(above_iden, iden)
+
+        # If two identifiers differ by major integer, then it's meaningless
+        # to compare minors (unlike floating point numbers). return early
+
+        if 0 != major_delta:
+            return major_delta, None
+
+        # Life is best if both have minor components
+        if above_iden.has_sub_component:
             if iden.has_sub_component:
-                jump_distance = minor_dist(above_iden, iden)
-            else:
-                jump_distance = major_dist(above_iden, iden)
-                is_under_branch = False
-        elif iden.has_sub_component:
-            if above_iden.has_sub_component:
-                jump_distance = minor_dist(above_iden, iden)
-                is_under_branch = True
-            else:
-                jump_distance = major_dist(above_iden, iden)
-                is_under_branch = True
-        else:
-            jump_distance = major_dist(above_iden, iden)
-        return jump_distance, is_under_branch
+                return 0, minor_dist(above_iden, iden)
+
+        """It's tempting to treat "no minor component" as "a minor component
+        of zero". But do you realy want the distance between these two to
+        look identical?
+
+            [#123] [#123.3]     [#123.2] [#123.5]
+
+        What we actually want is to pass the buck in these edge cases #here5
+        """
+
+        return 0, None
 
     def major_dist(above_iden, iden):
         return above_iden.major_integer - iden.major_integer
@@ -447,6 +502,7 @@ def _issues_collection_via(x, listener, opn=None):
 def xx(msg=None):
     raise RuntimeError('write me' + ('' if msg is None else f": {msg}"))
 
+# #history-B.6 major/minor delta
 # #history-B.5 directives
 # #history-B.4
 # #history-B.3

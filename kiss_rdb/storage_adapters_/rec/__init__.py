@@ -12,7 +12,8 @@ This is the external thing: [GNU Recutils][1] (and this [example][2]).
 
 Reminder: `recsel`
 
-And so yes, at #history-B.4 we spike a not-covered prototype of collectionism
+- At #history-B.5 we added create collection
+- At #history-B.4 we spike not-yet-covered prototype of collectionism (?)
 
 [1]: https://www.gnu.org/software/recutils/
 [2]: https://www.gnu.org/software/recutils/manual/A-Little-Example.html
@@ -144,6 +145,9 @@ class ErsatzScanner:
 
         # MULTI-LINE
 
+        import pdb
+        pdb.set_trace()
+
         hax = _field_via_line(line, self, listener)
         if hax is None:
             return
@@ -151,10 +155,11 @@ class ErsatzScanner:
         pieces = [hax.field_value_string[:-1]]  # chop trailing backslash
 
         while True:
+            line = scn.peek
             scn.advance()
+
             if scn.empty:
                 xx("above line was continuator, now is EOF. not covering this")
-            line = scn.peek
             if '\n' == line:
                 xx("we don't want to support a blank line after contination "
                    "for now because we haven't needed it yet")
@@ -170,8 +175,10 @@ class ErsatzScanner:
             # This line is the continuation of the above line but not
             # itself a continuator
             pieces.append(line[:-1])
-            scn.advance()
             break
+
+        import pdb
+        pdb.set_trace()
 
         tox._UPDATE_()  # determine line type of current line
         hax.field_value_string = ''.join(pieces)  # EEK
@@ -326,6 +333,13 @@ def _line_type(line):
 
 # ==
 
+def CREATE_COLLECTION(collection_path, listener, is_dry):
+    from ._create_collection import create_collection as func
+    return func(collection_path, listener, is_dry)
+
+
+# ==
+
 def _scnlib():
     from text_lib.magnetics import scanner_via as module
     return module
@@ -335,6 +349,7 @@ def xx(msg=None):
     raise RuntimeError('ohai' + ('' if msg is None else f": {msg}"))
 
 
+# #history-B.6
 # #history-B.5
 # #history-B.4
 # #born.
