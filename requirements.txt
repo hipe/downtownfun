@@ -35,7 +35,7 @@ oauthlib==3.1.0
 packaging==20.8
 pelican==4.5.3
 Pillow==8.0.1
-protobuf==3.12.2
+protobuf==3.18.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycodestyle==2.6.0
